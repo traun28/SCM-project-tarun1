@@ -455,4 +455,233 @@ fn main() {
         }
     }
 }
+// main.rs - A simple command-line gym tracking application in Rust.
+
+use std::io::{self, Write}; // Import necessary modules for input/output.
+use std::collections::HashMap; // For storing exercises within a workout.
+
+// Define a struct to represent a single set within an exercise.
+#[derive(Debug, Clone)]
+struct Set {
+    reps: u32,    // Number of repetitions.
+    weight: f64,  // Weight lifted (e.g., in kg or lbs).
+}
+
+// Define a struct to represent an exercise.
+#[derive(Debug, Clone)]
+struct Exercise {
+    name: String,             // Name of the exercise (e.g., "Bench Press").
+    sets: Vec<Set>,           // A list of sets performed for this exercise.
+}
+
+// Define a struct to represent a complete workout session.
+#[derive(Debug, Clone)]
+struct Workout {
+    date: String,             // Date of the workout (e.g., "2023-10-27").
+    // Using a HashMap to store exercises by their name for easy lookup and uniqueness.
+    exercises: HashMap<String, Exercise>,
+}
+
+// Function to get user input as a String.
+fn get_input(prompt: &str) -> String {
+    print!("{}", prompt); // Display the prompt to the user.
+    io::stdout().flush().expect("Failed to flush stdout"); // Ensure prompt is displayed immediately.
+
+    let mut input = String::new(); // Create a mutable String to store input.
+    io::stdin().read_line(&mut input).expect("Failed to read line"); // Read a line from stdin.
+    input.trim().to_string() // Trim whitespace and convert to String.
+}
+
+// Function to get a u32 (unsigned 32-bit integer) from user input.
+fn get_u32_input(prompt: &str) -> u32 {
+    loop { // Loop until valid input is received.
+        let input_str = get_input(prompt);
+        match input_str.parse::<u32>() { // Attempt to parse the input as u32.
+            Ok(num) => return num, // If successful, return the number.
+            Err(_) => println!("Invalid input. Please enter a number."), // If parsing fails, print error.
+        }
+    }
+}
+
+// Function to get an f64 (64-bit floating-point number) from user input.
+fn get_f64_input(prompt: &str) -> f64 {
+    loop { // Loop until valid input is received.
+        let input_str = get_input(prompt);
+        match input_str.parse::<f64>() { // Attempt to parse the input as f64.
+            Ok(num) => return num, // If successful, return the number.
+            Err(_) => println!("Invalid input. Please enter a number."), // If parsing fails, print error.
+        }
+    }
+}
+
+// Function to add a new workout.
+fn add_workout(workouts: &mut Vec<Workout>) {
+    println!("\n--- Add New Workout ---");
+    let date = get_input("Enter workout date (YYYY-MM-DD): ");
+    let new_workout = Workout {
+        date,
+        exercises: HashMap::new(), // Start with no exercises.
+    };
+    workouts.push(new_workout); // Add the new workout to the list.
+    println!("Workout added successfully!");
+}
+
+// Function to add an exercise to a specific workout.
+fn add_exercise_to_workout(workouts: &mut Vec<Workout>) {
+    if workouts.is_empty() {
+        println!("No workouts available. Please add a workout first.");
+        return;
+    }
+
+    println!("\n--- Add Exercise to Workout ---");
+    // Display available workouts for selection.
+    for (i, workout) in workouts.iter().enumerate() {
+        println!("{}. Workout on {}", i + 1, workout.date);
+    }
+
+    let workout_index = get_u32_input("Select a workout by number: ") as usize;
+
+    // Check if the selected index is valid.
+    if workout_index == 0 || workout_index > workouts.len() {
+        println!("Invalid workout selection.");
+        return;
+    }
+
+    let workout = &mut workouts[workout_index - 1]; // Get mutable reference to the selected workout.
+    let exercise_name = get_input("Enter exercise name: ");
+
+    // Check if the exercise already exists in this workout.
+    if workout.exercises.contains_key(&exercise_name) {
+        println!("Exercise '{}' already exists in this workout.", exercise_name);
+        return;
+    }
+
+    let new_exercise = Exercise {
+        name: exercise_name.clone(),
+        sets: Vec::new(), // Start with no sets.
+    };
+
+    // Insert the new exercise into the workout's HashMap.
+    workout.exercises.insert(exercise_name, new_exercise);
+    println!("Exercise added to workout successfully!");
+}
+
+// Function to log sets for an existing exercise within a workout.
+fn log_sets_for_exercise(workouts: &mut Vec<Workout>) {
+    if workouts.is_empty() {
+        println!("No workouts available. Please add a workout first.");
+        return;
+    }
+
+    println!("\n--- Log Sets for Exercise ---");
+    // Display available workouts.
+    for (i, workout) in workouts.iter().enumerate() {
+        println!("{}. Workout on {}", i + 1, workout.date);
+    }
+
+    let workout_index = get_u32_input("Select a workout by number: ") as usize;
+
+    if workout_index == 0 || workout_index > workouts.len() {
+        println!("Invalid workout selection.");
+        return;
+    }
+
+    let workout = &mut workouts[workout_index - 1];
+
+    if workout.exercises.is_empty() {
+        println!("No exercises in this workout. Please add an exercise first.");
+        return;
+    }
+
+    // Display exercises in the selected workout.
+    let mut exercise_names: Vec<&String> = workout.exercises.keys().collect();
+    exercise_names.sort(); // Sort for consistent display.
+
+    for (i, name) in exercise_names.iter().enumerate() {
+        println!("{}. {}", i + 1, name);
+    }
+
+    let exercise_selection_str = get_input("Select an exercise by number: ");
+    let exercise_selection = match exercise_selection_str.parse::<usize>() {
+        Ok(num) => num,
+        Err(_) => {
+            println!("Invalid input. Please enter a number.");
+            return;
+        }
+    };
+
+    if exercise_selection == 0 || exercise_selection > exercise_names.len() {
+        println!("Invalid exercise selection.");
+        return;
+    }
+
+    let selected_exercise_name = exercise_names[exercise_selection - 1].clone();
+    // Get mutable reference to the exercise.
+    let exercise = workout.exercises.get_mut(&selected_exercise_name).unwrap();
+
+    let num_sets = get_u32_input("How many sets do you want to log? ");
+
+    for i in 0..num_sets {
+        println!("--- Set {} ---", i + 1);
+        let reps = get_u32_input("Enter reps: ");
+        let weight = get_f64_input("Enter weight: ");
+        exercise.sets.push(Set { reps, weight });
+    }
+    println!("Sets logged successfully for {}!", exercise.name);
+}
+
+// Function to view all recorded workouts and their details.
+fn view_workouts(workouts: &Vec<Workout>) {
+    if workouts.is_empty() {
+        println!("\nNo workouts recorded yet.");
+        return;
+    }
+
+    println!("\n--- Your Workouts ---");
+    for (i, workout) in workouts.iter().enumerate() {
+        println!("Workout {}: {}", i + 1, workout.date);
+        if workout.exercises.is_empty() {
+            println!("  No exercises recorded for this workout.");
+        } else {
+            for exercise in workout.exercises.values() {
+                println!("  - Exercise: {}", exercise.name);
+                if exercise.sets.is_empty() {
+                    println!("    No sets logged for this exercise.");
+                } else {
+                    for (set_num, set) in exercise.sets.iter().enumerate() {
+                        println!("    Set {}: {} reps @ {} kg/lbs", set_num + 1, set.reps, set.weight);
+                    }
+                }
+            }
+        }
+        println!("--------------------");
+    }
+}
+
+fn main() {
+    let mut workouts: Vec<Workout> = Vec::new(); // A vector to store all workouts.
+
+    loop { // Main application loop.
+        println!("\nGym Tracker App");
+        println!("1. Add New Workout");
+        println!("2. Add Exercise to Workout");
+        println!("3. Log Sets for Exercise");
+        println!("4. View All Workouts");
+        println!("5. Exit");
+
+        let choice = get_input("Enter your choice: ");
+
+        match choice.as_str() { // Match user input to available options.
+            "1" => add_workout(&mut workouts),
+            "2" => add_exercise_to_workout(&mut workouts),
+            "3" => log_sets_for_exercise(&mut workouts),
+            "4" => view_workouts(&workouts),
+            "5" => {
+                println!("Exiting Gym Tracker. Goodbye!");
+                break; // Exit the loop and end the program.
+            }
+            _ => println!("Invalid choice. Please try again."), // Handle invalid input.
+        }
+    }
+}
 }
