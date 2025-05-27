@@ -455,4 +455,127 @@ fn main() {
         }
     }
 }
+// This program simulates a simple gym workout routine.
+// It demonstrates basic Rust concepts like functions, loops,
+// structs, enums, and pattern matching.
+
+use std::io; // Import the standard input/output library
+use std::thread; // For simulating time delays
+use std::time::Duration; // For specifying duration for delays
+
+// Define an enum for different types of exercises
+#[derive(Debug, PartialEq)]
+enum ExerciseType {
+    Strength,
+    Cardio,
+    Flexibility,
+}
+
+// Define a struct to represent an exercise
+struct Exercise {
+    name: String,
+    exercise_type: ExerciseType,
+    sets: u8,
+    reps: u8,
+    duration_minutes: u8, // For cardio/flexibility
+}
+
+// Function to perform a single exercise
+fn perform_exercise(exercise: &Exercise) {
+    println!("\n--- Starting {} ({:?}) ---", exercise.name, exercise.exercise_type);
+    match exercise.exercise_type {
+        ExerciseType::Strength => {
+            println!("   Performing {} sets of {} reps.", exercise.sets, exercise.reps);
+            for i in 1..=exercise.sets {
+                println!("   Set {}...", i);
+                thread::sleep(Duration::from_secs(2)); // Simulate effort
+            }
+            println!("   Strength exercise completed!");
+        }
+        ExerciseType::Cardio => {
+            println!("   Running for {} minutes.", exercise.duration_minutes);
+            for i in 1..=exercise.duration_minutes {
+                println!("   Minute {}...", i);
+                thread::sleep(Duration::from_secs(1)); // Simulate time passing
+            }
+            println!("   Cardio exercise completed!");
+        }
+        ExerciseType::Flexibility => {
+            println!("   Stretching for {} minutes.", exercise.duration_minutes);
+            for i in 1..=exercise.duration_minutes {
+                println!("   Minute {}...", i);
+                thread::sleep(Duration::from_secs(1)); // Simulate time passing
+            }
+            println!("   Flexibility exercise completed!");
+        }
+    }
+    println!("--- {} finished! ---", exercise.name);
+}
+
+// Main function where the program execution begins
+fn main() {
+    println!("Welcome to the Gym Workout Simulator!");
+    println!("Let's get ready for a great workout!\n");
+
+    // Define a list of exercises for the workout routine
+    let workout_routine = vec![
+        Exercise {
+            name: String::from("Bench Press"),
+            exercise_type: ExerciseType::Strength,
+            sets: 3,
+            reps: 8,
+            duration_minutes: 0, // Not applicable for strength
+        },
+        Exercise {
+            name: String::from("Squats"),
+            exercise_type: ExerciseType::Strength,
+            sets: 3,
+            reps: 10,
+            duration_minutes: 0,
+        },
+        Exercise {
+            name: String::from("Treadmill Run"),
+            exercise_type: ExerciseType::Cardio,
+            sets: 0, // Not applicable for cardio
+            reps: 0,
+            duration_minutes: 15,
+        },
+        Exercise {
+            name: String::from("Overhead Press"),
+            exercise_type: ExerciseType::Strength,
+            sets: 3,
+            reps: 8,
+            duration_minutes: 0,
+        },
+        Exercise {
+            name: String::from("Yoga Stretches"),
+            exercise_type: ExerciseType::Flexibility,
+            sets: 0,
+            reps: 0,
+            duration_minutes: 10,
+        },
+    ];
+
+    // Iterate through the workout routine and perform each exercise
+    for (index, exercise) in workout_routine.iter().enumerate() {
+        println!("\n--- Exercise {} of {} ---", index + 1, workout_routine.len());
+        perform_exercise(exercise);
+        // Optional: Add a short rest between exercises
+        if index < workout_routine.len() - 1 {
+            println!("\nTaking a short rest...");
+            thread::sleep(Duration::from_secs(3));
+        }
+    }
+
+    println!("\nWorkout complete! Great job!");
+    println!("Remember to stay hydrated and listen to your body.");
+
+    // Simple user interaction: Ask if they want to log their mood
+    println!("\nHow do you feel after your workout? (e.g., 'Energized', 'Tired', 'Great'): ");
+    let mut mood = String::new();
+    io::stdin().read_line(&mut mood).expect("Failed to read line");
+    let mood = mood.trim(); // Remove leading/trailing whitespace
+
+    println!("Logged mood: '{}'. Keep up the good work!", mood);
+}
 }
